@@ -4,18 +4,15 @@
 #include <Update.h>
 
 // Ganti dengan SSID dan password Wi-Fi kamu
-#define WIFI_SSID "RUMAH"
-#define WIFI_PASSWORD "caberg2010"
+#define WIFI_SSID "M4ATRIX-OUTDOOR"
+#define WIFI_PASSWORD "@Biofin241105"
 
 // URL untuk mendapatkan file firmware dari GitHub
 #define FIRMWARE_URL "https://raw.githubusercontent.com/RazakaAlbio/esp32-ota/refs/heads/main/firmware.bin"
 
-// Pin LED built-in di ESP32 (biasanya GPIO2)
-#define LED_PIN 2
-
 void setup() {
   Serial.begin(115200);
-
+  
   // Koneksi ke Wi-Fi
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
@@ -23,9 +20,6 @@ void setup() {
     Serial.println("Connecting to WiFi...");
   }
   Serial.println("Connected to WiFi");
-
-  // Set LED_PIN sebagai output
-  pinMode(LED_PIN, OUTPUT);
 
   // Mulai ArduinoOTA untuk update via OTA
   ArduinoOTA.begin();
@@ -55,16 +49,17 @@ void updateFirmware(String url) {
     size_t written = Update.writeStream(*stream);
     if (written == http.getSize()) {
       Serial.println("Firmware update successful.");
+
+      // Akhiri proses update dengan benar
       if (Update.end()) {
         if (Update.isFinished()) {
           Serial.println("Rebooting ESP32 after firmware update...");
-          blinkLED(5); // Blink LED 5 kali setelah update
           ESP.restart();  // Reboot ESP32 setelah pembaruan firmware
         } else {
-          Serial.println("Error in update.");
+          Serial.println("Error: Update not finished!");
         }
       } else {
-        Serial.println("Error ending update.");
+        Serial.println("Error: Unable to end update!");
       }
     } else {
       Serial.println("Error writing firmware.");
@@ -74,14 +69,4 @@ void updateFirmware(String url) {
   }
 
   http.end();  // Menutup koneksi HTTP
-}
-
-// Fungsi untuk membuat LED built-in blink
-void blinkLED(int times) {
-  for (int i = 0; i < times; i++) {
-    digitalWrite(LED_PIN, HIGH);  // LED ON
-    delay(1000);                   // Tunggu 500ms
-    digitalWrite(LED_PIN, LOW);   // LED OFF
-    delay(1000);                   // Tunggu 500ms
-  }
 }

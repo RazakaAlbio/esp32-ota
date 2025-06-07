@@ -1,0 +1,70 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoOTA.h>
+#include <Update.h>
+
+// Ganti dengan SSID dan password Wi-Fi kamu
+#define WIFI_SSID "RUMAH"
+#define WIFI_PASSWORD "caberg2010"
+
+// URL untuk mendapatkan file firmware dari GitHub
+#define FIRMWARE_URL "https://raw.githubusercontent.com/username/repository/branch/firmware.bin"
+
+void setup() {
+  Serial.begin(115200);
+  
+  // Koneksi ke Wi-Fi
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  Serial.println("Connected to WiFi");
+
+  // Mulai ArduinoOTA untuk update via OTA
+  ArduinoOTA.begin();
+}
+
+void loop() {
+  ArduinoOTA.handle();  // Menunggu perintah OTA
+
+  // Mengunduh dan memperbarui firmware dari GitHub
+  updateFirmware(FIRMWARE_URL);
+
+  delay(5000);  // Cek setiap 5 detik
+}
+
+void updateFirmware(String url) {
+  Serial.println("Downloading firmware from GitHub...");
+
+  HTTPClient http;
+  http.begin(url);  // Menggunakan URL raw file dari GitHub
+  int httpCode = http.GET();
+
+  if (httpCode == HTTP_CODE_OK) {
+    WiFiClient * stream = http.getStreamPtr();
+    Update.begin(UPDATE_SIZE_UNKNOWN);
+
+    // Menulis firmware ke ESP32
+    size_t written = Update.writeStream(*stream);
+    if (written == http.getSize()) {
+      Serial.println("Firmware update successful.");
+      if (Update.end()) {
+        if (Update.isFinished()) {
+          Serial.println("Rebooting ESP32 after firmware update...");
+          ESP.restart();  // Reboot ESP32 setelah pembaruan firmware
+        } else {
+          Serial.println("Error in update.");
+        }
+      } else {
+        Serial.println("Error ending update.");
+      }
+    } else {
+      Serial.println("Error writing firmware.");
+    }
+  } else {
+    Serial.println("Error downloading firmware.");
+  }
+
+  http.end();  // Menutup koneksi HTTP
+}

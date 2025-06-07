@@ -1,17 +1,20 @@
 #include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoOTA.h>
 #include <HTTPUpdate.h>
 
-// Ganti sesuai WiFi kamu
+// Ganti dengan SSID dan password Wi-Fi kamu
 const char* ssid = "RUMAH";
 const char* password = "caberg2010";
 
-// Ganti sesuai dengan URL file .bin dari GitHub Releases (harus langsung link ke file)
-const char* firmware_url = "https://raw.githubusercontent.com/RazakaAlbio/esp32-ota/refs/heads/main/firmware.bin";
+// Ganti dengan URL raw firmware dari GitHub
+const char* firmware_url = "https://raw.githubusercontent.com/RazakaAlbio/esp32-ota/main/firmware.bin";
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
 
+  // Menghubungkan ke Wi-Fi
   Serial.println("Menghubungkan ke WiFi...");
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -22,15 +25,21 @@ void setup() {
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
 
-  // Lakukan update firmware
+  // Lakukan update firmware menggunakan HTTPUpdate
   Serial.println("Cek pembaruan firmware...");
-  t_httpUpdate_return result = httpUpdate.update(firmware_url);
+  
+  HTTPClient http;
+  http.begin(firmware_url);  // Menyambung ke URL raw firmware
 
+  // Melakukan update menggunakan HTTPUpdate
+  t_httpUpdate_return result = HTTPUpdate.update(http, firmware_url);
+
+  // Menangani hasil update
   switch (result) {
     case HTTP_UPDATE_FAILED:
       Serial.printf("Update gagal. Error (%d): %s\n", 
-                    httpUpdate.getLastError(),
-                    httpUpdate.getLastErrorString().c_str());
+                    HTTPUpdate.getLastError(),
+                    HTTPUpdate.getLastErrorString().c_str());
       break;
 
     case HTTP_UPDATE_NO_UPDATES:
@@ -39,6 +48,7 @@ void setup() {
 
     case HTTP_UPDATE_OK:
       Serial.println("Pembaruan berhasil! Perangkat akan restart...");
+      ESP.restart();  // Reboot ESP32 setelah pembaruan firmware
       break;
   }
 }

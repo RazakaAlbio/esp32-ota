@@ -8,7 +8,7 @@
 #define WIFI_PASSWORD "caberg2010"
 
 // URL untuk mendapatkan file firmware dari GitHub
-#define FIRMWARE_URL "https://raw.githubusercontent.com/username/repository/branch/firmware.bin"
+#define FIRMWARE_URL "https://raw.githubusercontent.com/RazakaAlbio/esp32-ota/refs/heads/main/firmware.bin"
 
 void setup() {
   Serial.begin(115200);

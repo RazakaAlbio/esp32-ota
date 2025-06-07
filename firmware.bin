@@ -1,7 +1,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoOTA.h>
-#include <HTTPUpdate.h>
+#include <HTTPUpdate.h>  // Periksa dan gunakan HTTPUpdate dari library ESP32
 
 // Ganti dengan SSID dan password Wi-Fi kamu
 const char* ssid = "RUMAH";
@@ -29,17 +29,17 @@ void setup() {
   Serial.println("Cek pembaruan firmware...");
   
   HTTPClient http;
-  http.begin(firmware_url);  // Menyambung ke URL raw firmware
+  http.begin(firmware_url);  // Menyambung ke URL raw file dari GitHub
 
-  // Melakukan update menggunakan HTTPUpdate
-  t_httpUpdate_return result = HTTPUpdate.update(http, firmware_url);
+  // Melakukan update menggunakan httpUpdate
+  t_httpUpdate_return result = httpUpdate.update(http, firmware_url);
 
   // Menangani hasil update
   switch (result) {
     case HTTP_UPDATE_FAILED:
       Serial.printf("Update gagal. Error (%d): %s\n", 
-                    HTTPUpdate.getLastError(),
-                    HTTPUpdate.getLastErrorString().c_str());
+                    httpUpdate.getLastError(),
+                    httpUpdate.getLastErrorString().c_str());
       break;
 
     case HTTP_UPDATE_NO_UPDATES:
